@@ -20,9 +20,10 @@ path = "C:\\Users\\Nitro\\Desktop\\PP2\\lab8\\PaintImages"
 ###
 def main():
     global BLUE, GREEN, RED, BLACK, WHITE, radius, last_pos, draw_on, color
-    global mode, firsttap, path
+    global mode, firsttap, path, first_pos
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
+    screen2 = screen.copy()
     pygame.display.set_caption('Paint')
     screen.fill(WHITE)
     clock = pygame.time.Clock()
@@ -117,6 +118,8 @@ def main():
                 
             if event.type == pygame.MOUSEBUTTONDOWN:
 
+            #if was clicked copy our screen to screen2
+                screen2 = screen.copy()
                 pos = pygame.mouse.get_pos()
                 if eraserrect.collidepoint(pos):
                     mode = "erase"
@@ -141,13 +144,17 @@ def main():
                     first_pos = event.pos
                 draw_on = True
                 
+
             elif event.type == pygame.MOUSEBUTTONUP:
+
+            #stop drawing
                 draw_on = False
                 firsttap = False
                     
                 
             elif event.type == pygame.MOUSEMOTION:
 
+            #to know that we are moving our mouse
                 pos = pygame.mouse.get_pos()
                 if not globalrect.collidepoint(pos) and draw_on == True:
                     if mode == "draw":
@@ -155,14 +162,15 @@ def main():
                     if mode == "erase":
                         erase(screen, event.pos, last_pos)
                     if mode == "draw_rect":
-                        drawRect(screen, first_pos, last_pos)
+                        drawRect(screen, screen2, first_pos, event.pos)
                     if mode == "draw_circle":
-                        drawCircle(screen, first_pos, last_pos)
-                    
-                last_pos = event.pos
+                        drawCircle(screen, screen2, first_pos, event.pos)
+                        
+                last_pos = event.pos                    
+                
 
         
-        pygame.display.flip()
+        pygame.display.update()
         clock.tick(10000)
 
 ###
@@ -196,19 +204,29 @@ def erase(screen, start, end):
     color = last_color
 ###
 
-def drawRect(screen, start, end):
+def drawRect(screen, screen2, start, end):
 
-    x = end[0] - start[0]
-    y = end[1] - start[1]
-    pygame.draw.rect(screen, color, pygame.Rect(start[0], start[1], x, y))
+    lx = min(end[0], start[0])
+    rx = max(end[0], start[0])
+    ly = min(end[1], start[1])
+    ry = max(end[1], start[1])
+    #upd screen backwards
+    screen.blit(screen2, (0, 0))
+    pygame.draw.rect(screen, color, pygame.Rect(lx, ly, rx - lx, ry - ly))
     
 ###
     
-def drawCircle(screen, start, end):
+def drawCircle(screen, screen2, start, end):
 
-    (x1, y1) = start
-    (x2, y2) = end 
+    x1 = min(end[0], start[0])
+    x2 = max(end[0], start[0])
+    y1 = min(end[1], start[1])
+    y2 = max(end[1], start[1])
+    #(x1, y1) = start
+    #(x2, y2) = end 
     r = min((x2 - x1) / 2, (y2 - y1) / 2)
+    #upd screen backwards
+    screen.blit(screen2, (0, 0))
     pygame.draw.circle(screen, color, (x1 + r, y1 + r), r)
 ###
 

@@ -129,27 +129,12 @@ def showInPage(cursor, page):
 
 ###
 
-def insertByList(cursor, namephone):
-    incorrect = []
-    correct = []
-    for x in namephone:
-        if(not x[1].isnumeric() or len(x[1]) != 11):
-            incorrect.append((x[0], x[1]))
-        else:
-            correct.append((x[0], x[1]))
-
-    if len(correct) > 0:
-        for x in correct:
-            insertData(cursor, x[0], x[1])
-##        query = f"""
-##            INSERT INTO postgres.phonebook.phonebook2
-##            VALUES {correct};
-##            """
-##        cursor.execute(query)
-
-    if len(incorrect) > 0:
-        return incorrect
-        
+def insertByList(cursor, phonename):
+    cursor.execute(f"SELECT * FROM postgres.phonebook.insert_data_by_list(ARRAY[{phonename}])")
+    rows = cursor.fetchall()
+    print("Incorrect data: ", len(rows))
+    for row in rows:
+        print(row) 
             
 
 ###
@@ -163,7 +148,7 @@ cursor = conn.cursor()
 #creating table
 createTable(cursor)
 #inserting data into the phonebook
-print("Type of query: insert, insertbycsv, delete, insertbylist, selectbypattern, showinpage")
+print("Type of query: insert, insertbycsv, delete, insertbylist, selectbypattern, showinpage, insertbylist")
 typ = input()
 
 #inserting from console 11
@@ -210,18 +195,6 @@ if(typ == "delete"):
     where = input()
     deleteData(cursor, where) 
 
-#inserting data by list and returning incorrect data
-if(typ == "insertbylist"):
-    print("Amount of data: ")
-    n = int(input())
-    namephone = []
-    for i in range(n):
-        name = input()
-        phone = input()
-        namephone.append((name, phone))
-    incorrectdata = insertByList(cursor, namephone)
-    for data in incorrectdata:
-        print(data)
 
 #showing table with pattern 11
 if(typ == "selectbypattern"):
@@ -239,6 +212,20 @@ if(typ == "showinpage"):
         else:
             page = int(page)
             showInPage(cursor, page)
+
+#inserting by list and returning incorrect data
+if(typ == "insertbylist"):
+    print("Amount of data: ")
+    n = int(input())
+    phonename = ""
+    for i in range (n):
+        name = input()
+        phone = input()
+        if(i == n - 1):
+            phonename = phonename + "ARRAY[\'" + name + "\', \'" + phone + "\']"
+        else:
+            phonename = phonename + "ARRAY[\'" + name + "\', \'" + phone + "\'], "
+    insertByList(cursor, phonename)
         
 
 
